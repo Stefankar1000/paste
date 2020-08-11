@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from flask import Flask, request, url_for
+from flask import Flask, request, url_for, make_response
 from flask_sqlalchemy import SQLAlchemy
 import shortuuid
 
@@ -69,7 +69,7 @@ def create_paste():
 @app.route("/<string:name>", methods=["GET"])
 def get_paste(name: str):
     if not (paste := Paste.query.filter(Paste.name == name).first()):
-        return {"error": "Name not found"}, 404
+        return {"error": "Paste not found"}, 404
 
     return {
         "name": paste.name,
@@ -77,6 +77,16 @@ def get_paste(name: str):
         "language": paste.language,
         "created_at": paste.created_at,
     }
+
+
+@app.route("/raw/<string:name>", methods=["GET"])
+def get_raw_paste(name: str):
+    if not (paste := Paste.query.filter(Paste.name == name).first()):
+        return {"error": "Paste not found"}, 404
+
+    response = make_response(paste.content)
+    response.mimetype = "text/plain"
+    return response
 
 
 if __name__ == "__main__":
